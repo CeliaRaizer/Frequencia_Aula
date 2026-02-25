@@ -1,0 +1,64 @@
+<h2>Diário - Professor</h2>
+
+<button onclick="novaAula()">Criar Aula de Hoje</button>
+<button onclick="marcarTodos()">Marcar Todos como Presentes</button>
+<button onclick="removerAula()">Remover Aula de Hoje</button>
+
+<ul id="lista"></ul>
+
+<script>
+  async function carregar() {
+    const res = await fetch("/diario");
+    const diario = await res.json();
+
+    const dataHoje = new Date().toISOString().split("T")[0];
+    const aula = diario.aulas.find(a => a.data === dataHoje);
+
+    const lista = document.getElementById("lista");
+    lista.innerHTML = "";
+
+    diario.alunos.forEach(aluno => {
+      const status = aula?.presencas[aluno.matricula] || "Não marcado";
+
+      lista.innerHTML += `
+      <li>
+        ${aluno.nome} - <b>${status}</b>
+        <button onclick="marcar('${aluno.matricula}','Presente')">Presente</button>
+        <button onclick="marcar('${aluno.matricula}','Ausente')">Ausente</button>
+      </li>
+    `;
+    });
+  }
+
+  async function novaAula() {
+    await fetch("/nova-aula", { method: "POST" });
+    carregar();
+  }
+
+  async function removerAula() {
+    const data = new Date().toISOString().split("T")[0];
+    await fetch("/aula/" + data, { method: "DELETE" });
+    carregar();
+  }
+
+  async function marcar(matricula, status) {
+    await fetch("/marcar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ matricula, status })
+    });
+    carregar();
+  }
+
+  async function marcarTodos() {
+    const data = new Date().toISOString().split("T")[0];
+    await fetch("/marcar-todos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data, status: "Presente" })
+    });
+    carregar();
+  }
+
+  carregar();
+</script>

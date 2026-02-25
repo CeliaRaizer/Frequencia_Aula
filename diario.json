@@ -1,0 +1,88 @@
+{
+  "turma": "Desenvolvimento Web II",
+  "professor": "Fabricio Bizotto",
+  "alunos": [
+    {
+      "matricula": "1",
+      "nome": "ALESSANDRA CORRÊA"
+    },
+    {
+      "matricula": "2",
+      "nome": "BENVINDO DOMINGOS NGOLA DOS SANTOS"
+    },
+    {
+      "matricula": "3",
+      "nome": "CELIA CRISTINA SLONGO RAIZER"
+    },
+    {
+      "matricula": "4",
+      "nome": "EDUARDO FRITSCH SILVA"
+    },
+    {
+      "matricula": "5",
+      "nome": "EVERTON JOSÉ SERIGHELLI"
+    },
+    {
+      "matricula": "6",
+      "nome": "GABRIEL VINICIUS MATTANA"
+    },
+    {
+      "matricula": "7",
+      "nome": "GILBERTO RIBEIRO JUNIOR"
+    },
+    {
+      "matricula": "8",
+      "nome": "HYGOR ALBERT FERNANDES MARQUES"
+    },
+    {
+      "matricula": "9",
+      "nome": "ISADORA MENEZES COZENDEY"
+    },
+    {
+      "matricula": "10",
+      "nome": "JOAO PAULO KOWALSKI"
+    },
+    {
+      "matricula": "11",
+      "nome": "JULIA LUZZI BALDISSERA"
+    },
+    {
+      "matricula": "12",
+      "nome": "LUCAS DUARTE LOPES"
+    },
+    {
+      "matricula": "13",
+      "nome": "MATHEUS VARELA DE PAULA"
+    },
+    {
+      "matricula": "14",
+      "nome": "MIGUEL SANTOS DOICHE"
+    },
+    {
+      "matricula": "15",
+      "nome": "SAMUEL CASTILHO PEREIRA"
+    },
+    {
+      "matricula": "16",
+      "nome": "VICTOR CASAGRANDE"
+    },
+    {
+      "matricula": "17",
+      "nome": "WILLIGHAN TINELLI DE SOUZA"
+    },
+    {
+      "matricula": "18",
+      "nome": "YHASMIN THAYNA JUSTINO LARA"
+    },
+    {
+      "matricula": "19",
+      "nome": "ZACK ZAYRY GOMES DA SILVA"
+    }
+  ],
+  "aulas": [
+    {
+      "data": "2026-02-25",
+      "presencas": {}
+    }
+  ]
+}
