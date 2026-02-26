@@ -34,6 +34,8 @@ wss.on("connection", ws => {
 
 function notificar() {
     console.log("Notificando clientes...");
+    console.log("Clientes WebSocket:", wss.clients.size);
+    console.log("Clientes Long Polling:", longPollingClients.length);
 
     wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
