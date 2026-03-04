@@ -1,33 +1,64 @@
-<h2>Diário - Professor</h2>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Diário - Professor</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
 
-<button onclick="novaAula()">Criar Aula de Hoje</button>
-<button onclick="marcarTodos()">Marcar Todos como Presentes</button>
-<button onclick="removerAula()">Remover Aula de Hoje</button>
+<div class="container">
 
-<ul id="lista"></ul>
+    <h2>Diário - Professor</h2>
+
+    <div class="botoes">
+        <button class="btn" onclick="novaAula()">Criar Aula de Hoje</button>
+        <button class="btn" onclick="marcarTodos()">Marcar Todos como Presentes</button>
+        <button class="btn btn-danger" onclick="removerAula()">Remover Aula de Hoje</button>
+    </div>
+
+    <ul id="lista"></ul>
+
+</div>
 
 <script>
   async function carregar() {
-    const res = await fetch("/diario");
-    const diario = await res.json();
+    try {
+      const res = await fetch("/diario");
+      const diario = await res.json();
 
-    const dataHoje = new Date().toISOString().split("T")[0];
-    const aula = diario.aulas.find(a => a.data === dataHoje);
+      const dataHoje = new Date().toISOString().split("T")[0];
+      const aula = diario.aulas?.find(a => a.data === dataHoje);
 
-    const lista = document.getElementById("lista");
-    lista.innerHTML = "";
+      const lista = document.getElementById("lista");
+      lista.innerHTML = "";
 
-    diario.alunos.forEach(aluno => {
-      const status = aula?.presencas[aluno.matricula] || "Não marcado";
+      if (!diario.alunos) return;
 
-      lista.innerHTML += `
-      <li>
-        ${aluno.nome} - <b>${status}</b>
-        <button onclick="marcar('${aluno.matricula}','Presente')">Presente</button>
-        <button onclick="marcar('${aluno.matricula}','Ausente')">Ausente</button>
-      </li>
-    `;
-    });
+      diario.alunos.forEach(aluno => {
+        const status = aula?.presencas?.[aluno.matricula] || "Não marcado";
+
+        const li = document.createElement("li");
+
+        if (status === "Presente") li.classList.add("presente");
+        else if (status === "Ausente") li.classList.add("ausente");
+        else li.classList.add("nao-marcado");
+
+        li.innerHTML = `
+          <span class="nome">${aluno.nome}</span>
+          <span class="status-texto">${status}</span>
+          <div class="acoes">
+            <button class="btn-mini" onclick="marcar('${aluno.matricula}','Presente')">Presente</button>
+            <button class="btn-mini btn-danger" onclick="marcar('${aluno.matricula}','Ausente')">Ausente</button>
+          </div>
+        `;
+
+        lista.appendChild(li);
+      });
+
+    } catch (erro) {
+      console.error("Erro ao carregar:", erro);
+    }
   }
 
   async function novaAula() {
@@ -51,14 +82,16 @@
   }
 
   async function marcarTodos() {
-    const data = new Date().toISOString().split("T")[0];
     await fetch("/marcar-todos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ data, status: "Presente" })
+      body: JSON.stringify({ status: "Presente" })
     });
     carregar();
   }
 
   carregar();
 </script>
+
+</body>
+</html>

@@ -1,5 +1,18 @@
-<h2>Coordenação - Long Polling</h2>
-<ul id="lista"></ul>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Coordenação - Long Polling</title>
+
+    <!-- Conecta o CSS -->
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h2>Coordenação - Long Polling</h2>
+        <ul id="lista"></ul>
+    </div>
 
 <script>
     async function fetchDiario() {
@@ -10,6 +23,7 @@
         } catch (err) {
             console.log("Erro ao buscar diário");
         }
+
     }
 
     async function escutar() {
@@ -27,24 +41,32 @@
             await new Promise(r => setTimeout(r, 2000));
         }
 
-        escutar(); // reconecta apenas depois que finaliza
+        escutar();
     }
 
     function render(diario) {
         const dataHoje = new Date().toISOString().split("T")[0];
-
         const lista = document.getElementById("lista");
         lista.innerHTML = "";
 
         if (!diario.aulas) return;
-        console.log(diario);
 
         const aula = diario.aulas.find(a => a.data === dataHoje);
         if (!aula) return;
 
         diario.alunos.forEach(aluno => {
             const status = aula.presencas[aluno.matricula] || "Não marcado";
-            lista.innerHTML += `<li>${aluno.nome} - ${status}</li>`;
+
+            const classe =
+                status === "Presente" ? "presente" :
+                status === "Ausente" ? "ausente" :
+                "nao-marcado";
+
+            lista.innerHTML += `
+                <li class="${classe}">
+                    ${aluno.nome} - ${status}
+                </li>
+            `;
         });
     }
 
@@ -53,3 +75,6 @@
         escutar();
     });
 </script>
+
+</body>
+</html>

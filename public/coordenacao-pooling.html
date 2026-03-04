@@ -1,25 +1,68 @@
-<h2>Coordenação - Polling</h2>
-<ul id="lista"></ul>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Coordenação - Polling</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h2>
+        Coordenação - Polling
+        <span class="info">(Atualiza a cada 3 segundos)</span>
+    </h2>
+
+    <ul id="lista"></ul>
+
+</div>
 
 <script>
     async function atualizar() {
-        const res = await fetch("/diario");
-        const diario = await res.json();
+        try {
+            const res = await fetch("/diario");
+            const diario = await res.json();
 
-        const dataHoje = new Date().toISOString().split("T")[0];
-        const aula = diario.aulas ? diario.aulas.find(a => a.data === dataHoje) : null;
+            const dataHoje = new Date().toISOString().split("T")[0];
+            const aula = diario.aulas ? diario.aulas.find(a => a.data === dataHoje) : null;
 
+            const lista = document.getElementById("lista");
+            lista.innerHTML = "";
+
+            if (!aula) {
+                mostrarMensagem("Nenhuma aula criada hoje.");
+                return;
+            }
+
+            diario.alunos.forEach(aluno => {
+                const status = aula.presencas?.[aluno.matricula] || "Não marcado";
+
+                const li = document.createElement("li");
+                li.textContent = `${aluno.nome} - ${status}`;
+
+                if (status === "Presente") li.classList.add("presente");
+                else if (status === "Ausente") li.classList.add("ausente");
+                else li.classList.add("nao-marcado");
+
+                lista.appendChild(li);
+            });
+
+        } catch (erro) {
+            console.error("Erro ao atualizar:", erro);
+        }
+    }
+
+    function mostrarMensagem(texto) {
         const lista = document.getElementById("lista");
-        lista.innerHTML = "";
-
-        if (!aula) return;
-
-        diario.alunos.forEach(aluno => {
-            const status = aula.presencas[aluno.matricula] || "Não marcado";
-            lista.innerHTML += `<li>${aluno.nome} - ${status}</li>`;
-        });
+        const li = document.createElement("li");
+        li.textContent = texto;
+        lista.appendChild(li);
     }
 
     setInterval(atualizar, 3000);
     atualizar();
 </script>
+
+</body>
+</html>

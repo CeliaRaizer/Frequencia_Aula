@@ -1,12 +1,27 @@
-<h2>
-    Coordenação - WebSocket
-    <span id="status">🔴</span>
-</h2>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Coordenação - WebSocket</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
 
-<button id="btnConectar">Conectar</button>
-<button id="btnDesconectar" disabled>Desconectar</button>
+<div class="container">
 
-<ul id="lista"></ul>
+    <h2>
+        Coordenação - WebSocket
+        <span id="status" class="status">🔴</span>
+    </h2>
+
+    <div class="botoes">
+        <button id="btnConectar" class="btn">Conectar</button>
+        <button id="btnDesconectar" class="btn btn-danger" disabled>Desconectar</button>
+    </div>
+
+    <ul id="lista"></ul>
+
+</div>
 
 <script>
     const statusSpan = document.getElementById("status");

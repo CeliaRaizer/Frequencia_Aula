@@ -72,7 +72,7 @@ app.post("/nova-aula", (req, res) => {
 
     diario.aulas.push(novaAula);
     salvar();
-    // notificar();
+    notificar();
 
     res.json({ mensagem: "Nova aula criada", data });
 });
