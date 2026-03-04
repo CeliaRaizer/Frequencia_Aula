@@ -2,5 +2,49 @@
 <ul id="lista"></ul>
 
 <script>
-    // implementar a lógica 
+    const lista = document.getElementById("lista");
+
+    function atualizarTela(diario) {
+        lista.innerHTML = "";
+
+        if (!diario.aulas || diario.aulas.length === 0) {
+            lista.innerHTML = "<li>Nenhuma aula criada</li>";
+            return;
+        }
+
+        const ultimaAula = diario.aulas[diario.aulas.length - 1];
+
+        diario.alunos.forEach(aluno => {
+            const li = document.createElement("li");
+
+            const status = ultimaAula.presencas[aluno.matricula] || "Não marcado";
+
+            li.textContent = `${aluno.nome} - ${status}`;
+            lista.appendChild(li);
+        });
+    }
+
+    // 🔌 Criar conexão WebSocket
+    const ws = new WebSocket("ws://localhost:3000");
+
+    // Quando conectar
+    ws.onopen = () => {
+        console.log("Conectado ao servidor WebSocket");
+    };
+
+    // Quando receber mensagem
+    ws.onmessage = (event) => {
+        const diario = JSON.parse(event.data);
+        atualizarTela(diario);
+    };
+
+    // Se fechar conexão
+    ws.onclose = () => {
+        console.log("Conexão WebSocket fechada");
+    };
+
+    // Se ocorrer erro
+    ws.onerror = (error) => {
+        console.error("Erro WebSocket:", error);
+    };
 </script>

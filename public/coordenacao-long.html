@@ -2,5 +2,49 @@
 <ul id="lista"></ul>
 
 <script>
-    // implementar a lógica 
+    const lista = document.getElementById("lista");
+
+    function atualizarTela(diario) {
+        lista.innerHTML = "";
+
+        if (!diario.aulas || diario.aulas.length === 0) {
+            lista.innerHTML = "<li>Nenhuma aula criada</li>";
+            return;
+        }
+
+        const ultimaAula = diario.aulas[diario.aulas.length - 1];
+
+        diario.alunos.forEach(aluno => {
+            const li = document.createElement("li");
+
+            const status = ultimaAula.presencas[aluno.matricula] || "Não marcado";
+
+            li.textContent = `${aluno.nome} - ${status}`;
+            lista.appendChild(li);
+        });
+    }
+
+    function iniciarLongPolling() {
+        fetch("/long-poll")
+            .then(res => res.json())
+            .then(data => {
+
+                // Se não foi timeout, atualiza tela
+                if (!data.timeout) {
+                    atualizarTela(data);
+                }
+
+                // Faz nova requisição imediatamente
+                iniciarLongPolling();
+            })
+            .catch(err => {
+                console.error("Erro no Long Polling:", err);
+
+                // Em caso de erro, tenta novamente após 3 segundos
+                setTimeout(iniciarLongPolling, 3000);
+            });
+    }
+
+    // Inicia o ciclo
+    iniciarLongPolling();
 </script>
