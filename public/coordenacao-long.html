@@ -2,49 +2,54 @@
 <ul id="lista"></ul>
 
 <script>
-    const lista = document.getElementById("lista");
+    async function fetchDiario() {
+        try {
+            const res = await fetch("/diario");
+            const dados = await res.json();
+            render(dados);
+        } catch (err) {
+            console.log("Erro ao buscar diário");
+        }
+    }
 
-    function atualizarTela(diario) {
-        lista.innerHTML = "";
+    async function escutar() {
+        try {
+            const res = await fetch("/long-poll");
+            const dados = await res.json();
 
-        if (!diario.aulas || diario.aulas.length === 0) {
-            lista.innerHTML = "<li>Nenhuma aula criada</li>";
-            return;
+            if (!dados.timeout) {
+                render(dados);
+                console.log("Atualizado via long polling");
+            }
+
+        } catch (err) {
+            console.log("Erro, tentando novamente...");
+            await new Promise(r => setTimeout(r, 2000));
         }
 
-        const ultimaAula = diario.aulas[diario.aulas.length - 1];
+        escutar(); // reconecta apenas depois que finaliza
+    }
+
+    function render(diario) {
+        const dataHoje = new Date().toISOString().split("T")[0];
+
+        const lista = document.getElementById("lista");
+        lista.innerHTML = "";
+
+        if (!diario.aulas) return;
+        console.log(diario);
+
+        const aula = diario.aulas.find(a => a.data === dataHoje);
+        if (!aula) return;
 
         diario.alunos.forEach(aluno => {
-            const li = document.createElement("li");
-
-            const status = ultimaAula.presencas[aluno.matricula] || "Não marcado";
-
-            li.textContent = `${aluno.nome} - ${status}`;
-            lista.appendChild(li);
+            const status = aula.presencas[aluno.matricula] || "Não marcado";
+            lista.innerHTML += `<li>${aluno.nome} - ${status}</li>`;
         });
     }
 
-    function iniciarLongPolling() {
-        fetch("/long-poll")
-            .then(res => res.json())
-            .then(data => {
-
-                // Se não foi timeout, atualiza tela
-                if (!data.timeout) {
-                    atualizarTela(data);
-                }
-
-                // Faz nova requisição imediatamente
-                iniciarLongPolling();
-            })
-            .catch(err => {
-                console.error("Erro no Long Polling:", err);
-
-                // Em caso de erro, tenta novamente após 3 segundos
-                setTimeout(iniciarLongPolling, 3000);
-            });
-    }
-
-    // Inicia o ciclo
-    iniciarLongPolling();
+    window.addEventListener("load", () => {
+        fetchDiario();
+        escutar();
+    });
 </script>

@@ -1,57 +1,55 @@
 const express = require("express");
-const fs = require("fs"); //le e escreve o arquivo diario.json
+const fs = require("fs");
 const http = require("http");
-const WebSocket = require("ws");  //biblioteca WebSocket
+const WebSocket = require("ws");
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server }); //servidor WebSocket usando a mesma porta
+const wss = new WebSocket.Server({ server });
+
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static("public"));
 
-let diario = JSON.parse(fs.readFileSync("diario.json")); //le o json e guarda
+let diario = JSON.parse(fs.readFileSync("diario.json"));
 
 let longPollingClients = [];
 
-function salvar() { //salva o objeto atualizado no arquivo
+function salvar() {
     fs.writeFileSync("diario.json", JSON.stringify(diario, null, 2));
 }
 
-wss.on("connection", ws => { //roda quando um cliente webSocket conecta
-    
-    console.log("Cliente WebSocket conectado");
-
-    // Envia estado atual ao conectar
-    ws.send(JSON.stringify(diario));
+wss.on("connection", ws => {
+    console.log("Cliente conectado");
 
     ws.on("close", () => {
-        console.log("Cliente WebSocket desconectado");
+        console.log("Cliente desconectado");
     });
 
     ws.on("error", err => {
-        console.log("Erro WS:", err.message);
+        console.log("Erro no WebSocket:", err.message);
     });
+
+    ws.send(JSON.stringify(diario));
 });
 
-function notificar() { //atualiza webSockets, responde clientes Long Polling, limpa a lista
+function notificar() {
     console.log("Notificando clientes...");
     console.log("Clientes WebSocket:", wss.clients.size);
     console.log("Clientes Long Polling:", longPollingClients.length);
 
-    // implementar
-    //  WebSocket
     wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
+            console.log("Enviando atualização via WebSocket");
             client.send(JSON.stringify(diario));
         }
     });
 
-    //  Long Polling
     longPollingClients.forEach(res => {
         try {
             res.json(diario);
-        } catch (e) {}
+        } catch (e) { }
     });
 
     longPollingClients = [];
@@ -59,33 +57,32 @@ function notificar() { //atualiza webSockets, responde clientes Long Polling, li
 
 // 🔹 Criar nova aula (data atual)
 app.post("/nova-aula", (req, res) => {
-    // implementar
     const data = new Date().toISOString().split("T")[0];
-
     if (!diario.aulas) diario.aulas = [];
 
-    const aulaExistente = diario.aulas.find(a => a.data === data);
-
+    const aulaExistente = diario.aulas.find(a => a.data === data)
     if (aulaExistente) {
-        return res.json({ msg: "Aula já existe" });
+        return res.json({ mensagem: "Aula já criada hoje" });
     }
 
-    diario.aulas.push({ data, presencas: {} });
+    const novaAula = {
+        data,
+        presencas: {}
+    };
 
+    diario.aulas.push(novaAula);
     salvar();
-    notificar();
+    // notificar();
 
-    res.json({ mensagem: "Aula criada", data });
+    res.json({ mensagem: "Nova aula criada", data });
 });
 
 // 🔹 Marcar presença
 app.post("/marcar", (req, res) => {
-    // implementar
     const { matricula, status } = req.body;
     const data = new Date().toISOString().split("T")[0];
 
-    const aula = diario.aulas.find(a => a.data === data);
-
+    let aula = diario.aulas.find(a => a.data === data);
     if (!aula) {
         return res.status(400).json({ erro: "Crie a aula primeiro" });
     }
@@ -105,10 +102,9 @@ app.get("/diario", (req, res) => {
 
 // 🔹 Long polling
 app.get("/long-poll", (req, res) => {
-    // implementar
     const timeout = setTimeout(() => {
         res.json({ timeout: true });
-    }, 30000);
+    }, 30000); // 30 segundos
 
     longPollingClients.push(res);
 
@@ -126,7 +122,7 @@ app.get("/aula-atual", (req, res) => {
 });
 
 app.get("/aulas", (req, res) => {
-    res.json(diario.aulas);
+    res.sendFile(__dirname + "/public/aulas.html");
 });
 
 app.get("/aulas/:data", (req, res) => {
@@ -135,15 +131,11 @@ app.get("/aulas/:data", (req, res) => {
 });
 
 app.post("/marcar-todos", (req, res) => {
-    // TODO: marcar todos os alunos com o mesmo status
     const { status } = req.body;
     const data = new Date().toISOString().split("T")[0];
 
-    const aula = diario.aulas.find(a => a.data === data);
-
-    if (!aula) {
-        return res.status(400).json({ erro: "Crie a aula primeiro" });
-    }
+    let aula = diario.aulas.find(a => a.data === data);
+    if (!aula) return res.status(400).json({ erro: "Crie a aula primeiro" });
 
     diario.alunos.forEach(aluno => {
         aula.presencas[aluno.matricula] = status;
@@ -151,8 +143,7 @@ app.post("/marcar-todos", (req, res) => {
 
     salvar();
     notificar();
-
-    res.json({ mensagem: "Todos marcados" });
+    res.json({ ok: true });
 });
 
 // public/professor.html
@@ -172,6 +163,13 @@ app.get("/coordenacao-ws", (req, res) => {
     res.sendFile(__dirname + "/public/coordenacao-ws.html");
 });
 
+app.get("/aula/:data", (req, res) => {
+    const aula = diario.aulas.find(a => a.data === req.params.data);
+    if (!aula) return res.status(404).json({ erro: "Aula não encontrada" });
+
+    res.json(aula);
+});
+
 app.delete("/aula/:data", (req, res) => {
     const index = diario.aulas.findIndex(a => a.data === req.params.data);
     if (index === -1) return res.status(404).json({ erro: "Aula não encontrada" });
@@ -182,6 +180,6 @@ app.delete("/aula/:data", (req, res) => {
     res.json({ mensagem: "Aula removida" });
 });
 
-server.listen(3000, () =>
-    console.log("Servidor rodando em http://localhost:3000")
+server.listen(PORT, () =>
+    console.log(`Servidor rodando na porta ${PORT}`)
 );

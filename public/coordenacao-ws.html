@@ -1,50 +1,112 @@
-<h2>Coordenação - WebSocket</h2>
+<h2>
+    Coordenação - WebSocket
+    <span id="status">🔴</span>
+</h2>
+
+<button id="btnConectar">Conectar</button>
+<button id="btnDesconectar" disabled>Desconectar</button>
+
 <ul id="lista"></ul>
 
 <script>
+    const statusSpan = document.getElementById("status");
     const lista = document.getElementById("lista");
+    const btnConectar = document.getElementById("btnConectar");
+    const btnDesconectar = document.getElementById("btnDesconectar");
 
-    function atualizarTela(diario) {
-        lista.innerHTML = "";
+    let socket = null;
 
-        if (!diario.aulas || diario.aulas.length === 0) {
-            lista.innerHTML = "<li>Nenhuma aula criada</li>";
+    // -------------------------
+    // CONECTAR
+    // -------------------------
+    function conectar() {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            console.log("Já está conectado.");
             return;
         }
 
-        const ultimaAula = diario.aulas[diario.aulas.length - 1];
+        socket = new WebSocket("ws://localhost:3000");
 
-        diario.alunos.forEach(aluno => {
-            const li = document.createElement("li");
+        socket.addEventListener("open", () => {
+            atualizarStatus("🟢", "Conectado");
+            btnConectar.disabled = true;
+            btnDesconectar.disabled = false;
+            console.log("WebSocket conectado");
+        });
 
-            const status = ultimaAula.presencas[aluno.matricula] || "Não marcado";
+        socket.addEventListener("message", (event) => {
+            try {
+                console.log(event);
+                const diario = JSON.parse(event.data);
+                render(diario);
+            } catch (erro) {
+                console.error("Erro ao processar mensagem:", erro);
+            }
+        });
 
-            li.textContent = `${aluno.nome} - ${status}`;
-            lista.appendChild(li);
+        socket.addEventListener("close", () => {
+            atualizarStatus("🔴", "Desconectado");
+            btnConectar.disabled = false;
+            btnDesconectar.disabled = true;
+            console.log("WebSocket desconectado");
+        });
+
+        socket.addEventListener("error", (erro) => {
+            console.error("Erro no WebSocket:", erro);
         });
     }
 
-    // 🔌 Criar conexão WebSocket
-    const ws = new WebSocket("ws://localhost:3000");
+    // -------------------------
+    // DESCONECTAR
+    // -------------------------
+    function desconectar() {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.close(1000, "Encerrado pelo cliente");
+        }
+    }
 
-    // Quando conectar
-    ws.onopen = () => {
-        console.log("Conectado ao servidor WebSocket");
-    };
+    btnConectar.addEventListener("click", conectar);
+    btnDesconectar.addEventListener("click", desconectar);
 
-    // Quando receber mensagem
-    ws.onmessage = (event) => {
-        const diario = JSON.parse(event.data);
-        atualizarTela(diario);
-    };
+    // -------------------------
+    // FUNÇÕES AUXILIARES
+    // -------------------------
 
-    // Se fechar conexão
-    ws.onclose = () => {
-        console.log("Conexão WebSocket fechada");
-    };
+    function atualizarStatus(icone, texto) {
+        statusSpan.textContent = icone;
+        statusSpan.title = texto;
+    }
 
-    // Se ocorrer erro
-    ws.onerror = (error) => {
-        console.error("Erro WebSocket:", error);
-    };
+    function render(diario) {
+        lista.innerHTML = "";
+
+        if (!diario?.aulas || !diario?.alunos) {
+            mostrarMensagem("Dados inválidos recebidos.");
+            return;
+        }
+
+        const dataHoje = new Date().toISOString().split("T")[0];
+        const aulaHoje = diario.aulas.find(a => a.data === dataHoje);
+
+        if (!aulaHoje) {
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        diario.alunos.forEach(aluno => {
+            const li = document.createElement("li");
+            const status = aulaHoje.presencas?.[aluno.matricula] || "Não marcado";
+            li.textContent = `${aluno.nome} - ${status}`;
+            fragment.appendChild(li);
+        });
+
+        lista.appendChild(fragment);
+    }
+
+    function mostrarMensagem(texto) {
+        const li = document.createElement("li");
+        li.textContent = texto;
+        lista.appendChild(li);
+    }
 </script>
