@@ -1,80 +1,130 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coordenação - Long Polling</title>
-
-    <!-- Conecta o CSS -->
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="stylesheet" href="/assets/css/professor.css">
+    <link rel="stylesheet" href="/assets/css/coordenacao.css">
 </head>
+
 <body>
+    <header>
+        <div class="container">
+            <h1>⏱️ Coordenação - Long Polling</h1>
+            <p>Visualização com Long Polling (até 30 segundos por requisição)</p>
+        </div>
+    </header>
 
-    <div class="container">
-        <h2>Coordenação - Long Polling</h2>
-        <ul id="lista"></ul>
-    </div>
+ <nav>
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/professor" style="background-color: #3498db; color: white;">Professor</a></li>
+      <li><a href="/coordenacao-ws">Coordenação (WS)</a></li>
+      <li><a href="/coordenacao-long">Coordenação (Long)</a></li>
+      <li><a href="/coordenacao-pooling">Coordenação (Polling)</a></li>
+      <li><a href="/aulas">Aulas</a></li>
+    </ul>
+  </nav>
 
-<script>
-    async function fetchDiario() {
-        try {
-            const res = await fetch("/diario");
-            const dados = await res.json();
-            render(dados);
-        } catch (err) {
-            console.log("Erro ao buscar diário");
+    <main class="container">
+        <section>
+            <div class="connection-status">
+                <span class="status-indicator"></span>
+                <span>Conectado e aguardando atualizações...</span>
+            </div>
+
+            <div class="info-box">
+                <strong>⏱️ Long Polling</strong>
+                <p>Mantém uma requisição aberta no servidor até haver novos dados (máximo 30 segundos).</p>
+                <small>Ideal para ambientes com proxy ou firewall que bloqueiam WebSocket</small>
+            </div>
+
+            <h2>Presença da Aula de Hoje</h2>
+            <div id="lista"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p><strong>Registro de Frequência</strong> | Coordenação - Long Polling</p>
+        <p>© 2026 - Sistema de Gerenciamento de Frequências</p>
+    </footer>
+
+    <script>
+        async function fetchDiario() {
+            try {
+                const res = await fetch("/diario");
+                const dados = await res.json();
+                render(dados);
+            } catch (err) {
+                console.log("Erro ao buscar diário", err);
+            }
         }
 
-    }
+        async function escutar() {
+            try {
+                const res = await fetch("/long-poll");
+                const dados = await res.json();
 
-    async function escutar() {
-        try {
-            const res = await fetch("/long-poll");
-            const dados = await res.json();
-
-            if (!dados.timeout) {
-                render(dados);
-                console.log("Atualizado via long polling");
+                if (!dados.timeout) {
+                    render(dados);
+                    console.log("Atualizado via long polling");
+                }
+            } catch (err) {
+                console.log("Erro, tentando novamente...", err);
+                await new Promise(r => setTimeout(r, 2000));
             }
 
-        } catch (err) {
-            console.log("Erro, tentando novamente...");
-            await new Promise(r => setTimeout(r, 2000));
+            escutar();
         }
 
-        escutar();
-    }
+        function render(diario) {
+            const dataHoje = new Date().toISOString().split("T")[0];
+            const lista = document.getElementById("lista");
+            lista.innerHTML = "";
 
-    function render(diario) {
-        const dataHoje = new Date().toISOString().split("T")[0];
-        const lista = document.getElementById("lista");
-        lista.innerHTML = "";
+            if (!diario.aulas) return;
 
-        if (!diario.aulas) return;
+            const aula = diario.aulas.find(a => a.data === dataHoje);
+            if (!aula) {
+                lista.innerHTML = `
+                    <div class="empty-state">
+                        <h3>📭 Nenhuma aula criada hoje</h3>
+                        <p>Aguardando criação de aula...</p>
+                    </div>
+                `;
+                return;
+            }
 
-        const aula = diario.aulas.find(a => a.data === dataHoje);
-        if (!aula) return;
+            diario.alunos.forEach(aluno => {
+                const statusValue = aula.presencas[aluno.matricula];
+                let status = "❓ Não marcado";
+                let statusClass = "nao-marcado";
 
-        diario.alunos.forEach(aluno => {
-            const status = aula.presencas[aluno.matricula] || "Não marcado";
+                if (statusValue === "Presente") {
+                    status = "✓ Presente";
+                    statusClass = "presente";
+                } else if (statusValue === "Ausente") {
+                    status = "✗ Ausente";
+                    statusClass = "ausente";
+                }
 
-            const classe =
-                status === "Presente" ? "presente" :
-                status === "Ausente" ? "ausente" :
-                "nao-marcado";
+                lista.innerHTML += `
+                    <div class="aluno-item">
+                        <div class="aluno-nome">${aluno.nome}</div>
+                        <span class="aluno-status ${statusClass}">${status}</span>
+                    </div>
+                `;
+            });
+        }
 
-            lista.innerHTML += `
-                <li class="${classe}">
-                    ${aluno.nome} - ${status}
-                </li>
-            `;
+        window.addEventListener("load", () => {
+            fetchDiario();
+            escutar();
         });
-    }
-
-    window.addEventListener("load", () => {
-        fetchDiario();
-        escutar();
-    });
-</script>
-
+    </script>
 </body>
+
 </html>

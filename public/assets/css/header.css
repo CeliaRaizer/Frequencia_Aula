@@ -1,0 +1,88 @@
+body{
+    margin:0;
+    font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+    background:#fff0f6;
+}
+
+/* HEADER */
+header{
+    background: linear-gradient(90deg,#ff4da6,#ff80bf);
+    color:white;
+    padding:20px 0;
+    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+.header-content{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.menu a{
+    color:white;
+    text-decoration:none;
+    margin-left:25px;
+    font-weight:bold;
+    transition:0.2s;
+}
+
+.menu a:hover{
+    opacity:0.8;
+}
+
+/* CONTAINER */
+.container{
+    max-width:1200px;
+    margin:auto;
+    padding:40px 20px;
+}
+
+/* GRID */
+.features{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:25px;
+}
+
+/* CARDS */
+.feature-card{
+    background:white;
+    padding:30px 20px;
+    border-radius:12px;
+    cursor:pointer;
+    transition:0.3s;
+    text-align:center;
+    box-shadow:0 6px 15px rgba(0,0,0,0.08);
+}
+
+.feature-card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.15);
+}
+
+/* ÍCONES */
+.feature-card span{
+    font-size:48px;
+    display:block;
+    margin-bottom:15px;
+}
+
+/* TITULO */
+.feature-card h3{
+    margin:10px 0;
+    color:#d63384;
+}
+
+/* TEXTO */
+.feature-card p{
+    color:#555;
+}
+
+/* SEÇÕES */
+.secao{
+    margin-top:40px;
+}
+
+.escondida{
+    display:none;
+}

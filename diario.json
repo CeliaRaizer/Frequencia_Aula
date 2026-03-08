@@ -119,27 +119,34 @@
       }
     },
     {
-      "data": "2026-03-03",
+      "data": "2026-03-06",
+      "presencas": {}
+    },
+    {
+      "data": "2026-03-07",
+      "presencas": {}
+    },
+    {
+      "data": "2026-03-08",
       "presencas": {
         "1": "Presente",
         "2": "Presente",
         "3": "Presente",
         "4": "Presente",
-        "5": "Presente",
-        "6": "Presente",
-        "7": "Presente",
+        "5": "Ausente",
+        "6": "Ausente",
+        "7": "Ausente",
         "8": "Presente",
         "9": "Presente",
         "10": "Presente",
         "11": "Presente",
         "12": "Presente",
         "13": "Presente",
-        "14": "Presente",
-        "15": "Presente",
+        "14": "Ausente",
+        "15": "Ausente",
         "16": "Presente",
         "17": "Presente",
-        "18": "Presente",
-        "19": "Presente"
+        "18": "Presente"
       }
     }
   ]

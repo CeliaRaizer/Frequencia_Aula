@@ -1,29 +1,76 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Diário - Professor</title>
-    <link rel="stylesheet" href="/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tela do Professor</title>
+
+  <link rel="stylesheet" href="/assets/css/styles.css">
+  <link rel="stylesheet" href="/assets/css/professor.css">
 </head>
+
 <body>
-
-<div class="container">
-
-    <h2>Diário - Professor</h2>
-
-    <div class="botoes">
-        <button class="btn" onclick="novaAula()">Criar Aula de Hoje</button>
-        <button class="btn" onclick="marcarTodos()">Marcar Todos como Presentes</button>
-        <button class="btn btn-danger" onclick="removerAula()">Remover Aula de Hoje</button>
+  <header>
+    <div class="container">
+      <h1>👨‍🏫 Tela do Professor</h1>
+      <p>Marque a frequência dos alunos em tempo real</p>
     </div>
+  </header>
 
-    <ul id="lista"></ul>
+  <nav>
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/professor" style="background-color: #3498db; color: white;">Professor</a></li>
+      <li><a href="/coordenacao-ws">Coordenação (WS)</a></li>
+      <li><a href="/coordenacao-long">Coordenação (Long)</a></li>
+      <li><a href="/coordenacao-pooling">Coordenação (Polling)</a></li>
+      <li><a href="/aulas">Aulas</a></li>
+    </ul>
+  </nav>
 
-</div>
+  <main class="container">
+    <section>
+      <h2>Ações Rápidas</h2>
+      <div class="action-section">
+        <button class="btn btn-success" onclick="novaAula()">✔️ Criar Aula de Hoje</button>
+        <button class="btn btn-primary" onclick="marcarTodos()">👥 Marcar Todos Presentes</button>
+        <button class="btn btn-danger" onclick="removerAula()">🗑️ Remover Aula de Hoje</button>
+      </div>
 
-<script>
-  async function carregar() {
-    try {
+      <div class="stats" id="stats" style="display: none;">
+        <div class="stat-card">
+          <div class="stat-number" id="total">0</div>
+          <div class="stat-label">Total de Alunos</div>
+        </div>
+        <div class="stat-card" style="border-left-color: #27ae60;">
+          <div class="stat-number" id="presentes" style="color: #27ae60;">0</div>
+          <div class="stat-label">Presentes</div>
+        </div>
+        <div class="stat-card" style="border-left-color: #e74c3c;">
+          <div class="stat-number" id="ausentes" style="color: #e74c3c;">0</div>
+          <div class="stat-label">Ausentes</div>
+        </div>
+        <div class="stat-card" style="border-left-color: #f39c12;">
+          <div class="stat-number" id="nao-marcados" style="color: #f39c12;">0</div>
+          <div class="stat-label">Não Marcados</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Registro de Presença</h2>
+      <div id="lista"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p><strong>Registro de Frequência</strong> | Tela do Professor</p>
+    <p>© 2026 - Sistema de Gerenciamento de Frequências</p>
+  </footer>
+
+  <script>
+    async function carregar() {
       const res = await fetch("/diario");
       const diario = await res.json();
 
@@ -31,67 +78,109 @@
       const aula = diario.aulas?.find(a => a.data === dataHoje);
 
       const lista = document.getElementById("lista");
+      const statsSection = document.getElementById("stats");
       lista.innerHTML = "";
 
-      if (!diario.alunos) return;
+      if (!aula) {
+        lista.innerHTML = `
+            <div class="empty-state">
+              <h3>📭 Nenhuma aula criada hoje</h3>
+              <p>Clique no botão "Criar Aula de Hoje" para começar.</p>
+            </div>
+          `;
+        statsSection.style.display = "none";
+        return;
+      }
+
+      let presentes = 0;
+      let ausentes = 0;
+      let naoMarcados = 0;
 
       diario.alunos.forEach(aluno => {
-        const status = aula?.presencas?.[aluno.matricula] || "Não marcado";
+        const statusValue = aula.presencas[aluno.matricula] || null;
+        let status = "Não marcado";
+        let statusClass = "nao-marcado";
 
-        const li = document.createElement("li");
+        if (statusValue === "Presente") {
+          status = "✓ Presente";
+          statusClass = "presente";
+          presentes++;
+        } else if (statusValue === "Ausente") {
+          status = "✗ Ausente";
+          statusClass = "ausente";
+          ausentes++;
+        } else {
+          naoMarcados++;
+        }
 
-        if (status === "Presente") li.classList.add("presente");
-        else if (status === "Ausente") li.classList.add("ausente");
-        else li.classList.add("nao-marcado");
-
-        li.innerHTML = `
-          <span class="nome">${aluno.nome}</span>
-          <span class="status-texto">${status}</span>
-          <div class="acoes">
-            <button class="btn-mini" onclick="marcar('${aluno.matricula}','Presente')">Presente</button>
-            <button class="btn-mini btn-danger" onclick="marcar('${aluno.matricula}','Ausente')">Ausente</button>
-          </div>
-        `;
-
-        lista.appendChild(li);
+        lista.innerHTML += `
+            <div class="aluno-item">
+              <div class="aluno-nome">${aluno.nome}</div>
+              <span class="aluno-status ${statusClass}">${status}</span>
+              <div class="aluno-buttons">
+                <button class="btn-small presente" onclick="marcar('${aluno.matricula}','Presente')">✓ Presente</button>
+                <button class="btn-small ausente" onclick="marcar('${aluno.matricula}','Ausente')">✗ Ausente</button>
+              </div>
+            </div>
+          `;
       });
 
-    } catch (erro) {
-      console.error("Erro ao carregar:", erro);
+      document.getElementById("total").textContent = diario.alunos.length;
+      document.getElementById("presentes").textContent = presentes;
+      document.getElementById("ausentes").textContent = ausentes;
+      document.getElementById("nao-marcados").textContent = naoMarcados;
+      statsSection.style.display = "grid";
     }
-  }
 
-  async function novaAula() {
-    await fetch("/nova-aula", { method: "POST" });
-    carregar();
-  }
+    async function novaAula() {
+      const res = await fetch("/nova-aula", { method: "POST" });
+      if (res.ok) {
+        carregar();
+      } else {
+        alert("Erro ao criar aula");
+      }
+    }
 
-  async function removerAula() {
-    const data = new Date().toISOString().split("T")[0];
-    await fetch("/aula/" + data, { method: "DELETE" });
-    carregar();
-  }
+    async function removerAula() {
+      if (!confirm("Tem certeza que deseja remover a aula de hoje?")) return;
+      const data = new Date().toISOString().split("T")[0];
+      const res = await fetch("/aula/" + data, { method: "DELETE" });
+      if (res.ok) {
+        carregar();
+      } else {
+        alert("Erro ao remover aula");
+      }
+    }
 
-  async function marcar(matricula, status) {
-    await fetch("/marcar", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ matricula, status })
-    });
-    carregar();
-  }
+    async function marcar(matricula, status) {
+      const res = await fetch("/marcar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ matricula, status })
+      });
+      if (res.ok) {
+        carregar();
+      } else {
+        alert("Erro ao marcar presença");
+      }
+    }
 
-  async function marcarTodos() {
-    await fetch("/marcar-todos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "Presente" })
-    });
-    carregar();
-  }
+    async function marcarTodos() {
+      const data = new Date().toISOString().split("T")[0];
+      const res = await fetch("/marcar-todos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data, status: "Presente" })
+      });
+      if (res.ok) {
+        carregar();
+      } else {
+        alert("Erro ao marcar todos");
+      }
+    }
 
-  carregar();
-</script>
-
+    window.addEventListener("load", carregar);
+  </script>
 </body>
+
 </html>

@@ -1,127 +1,187 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coordenação - WebSocket</title>
-    <link rel="stylesheet" href="/style.css">
+
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="stylesheet" href="/assets/css/professor.css">
+    <link rel="stylesheet" href="/assets/css/coordenacao.css">
 </head>
+
 <body>
+   <header>
+        <div class="container">
+            <h1>🖥️ Tela da Coordenação</h1>
+            <p>Acompanhamento da frequência em tempo real</p>
+        </div>
+    </header>
 
-<div class="container">
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/professor">Professor</a></li>
+            <li><a href="/coordenacao-ws" class="active">Coordenação (WS)</a></li>
+            <li><a href="/coordenacao-long">Coordenação (Long)</a></li>
+            <li><a href="/coordenacao-pooling">Coordenação (Polling)</a></li>
+            <li><a href="/aulas">Aulas</a></li>
+        </ul>
+    </nav>
 
-    <h2>
-        Coordenação - WebSocket
-        <span id="status" class="status">🔴</span>
-    </h2>
+    <main class="container">
+        <section class="card-coordenacao">
 
-    <div class="botoes">
-        <button id="btnConectar" class="btn">Conectar</button>
-        <button id="btnDesconectar" class="btn btn-danger" disabled>Desconectar</button>
+    <h2>📡 Conexão WebSocket</h2>
+
+    <div class="connection-status">
+        <div class="status-text">
+            <span class="status-indicator desconectado" id="statusIndicator"></span>
+            <span id="statusText">Desconectado</span>
+        </div>
+
+        <div class="connection-buttons">
+            <button id="btnConectar" class="btn btn-success">🔗 Conectar</button>
+            <button id="btnDesconectar" class="btn btn-danger" disabled>❌ Desconectar</button>
+        </div>
     </div>
 
-    <ul id="lista"></ul>
+    <div class="info-box">
+        <strong>🔗 WebSocket</strong>
+        <p>Conexão bidirecional persistente que permite atualização instantânea de dados.</p>
+        <small>Ideal para comunicação em tempo real com baixa latência</small>
+    </div>
 
-</div>
+    <h2>Registro de Presença</h2>
 
-<script>
-    const statusSpan = document.getElementById("status");
-    const lista = document.getElementById("lista");
-    const btnConectar = document.getElementById("btnConectar");
-    const btnDesconectar = document.getElementById("btnDesconectar");
+    <div id="lista"></div>
 
-    let socket = null;
+</section>
+    </main>
 
-    // -------------------------
-    // CONECTAR
-    // -------------------------
-    function conectar() {
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            console.log("Já está conectado.");
-            return;
-        }
+    <footer>
+        <p><strong>Registro de Frequência</strong> | Coordenação - WebSocket</p>
+        <p>© 2026 - Sistema de Gerenciamento de Frequências</p>
+    </footer>
 
-        socket = new WebSocket("ws://localhost:3000");
+    <script>
+        const statusIndicator = document.getElementById("statusIndicator");
+        const statusText = document.getElementById("statusText");
+        const lista = document.getElementById("lista");
+        const btnConectar = document.getElementById("btnConectar");
+        const btnDesconectar = document.getElementById("btnDesconectar");
 
-        socket.addEventListener("open", () => {
-            atualizarStatus("🟢", "Conectado");
-            btnConectar.disabled = true;
-            btnDesconectar.disabled = false;
-            console.log("WebSocket conectado");
-        });
+        let socket = null;
 
-        socket.addEventListener("message", (event) => {
-            try {
-                console.log(event);
-                const diario = JSON.parse(event.data);
-                render(diario);
-            } catch (erro) {
-                console.error("Erro ao processar mensagem:", erro);
+        function conectar() {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                console.log("Já está conectado.");
+                return;
             }
-        });
 
-        socket.addEventListener("close", () => {
-            atualizarStatus("🔴", "Desconectado");
-            btnConectar.disabled = false;
-            btnDesconectar.disabled = true;
-            console.log("WebSocket desconectado");
-        });
+            socket = new WebSocket("ws://localhost:3000");
 
-        socket.addEventListener("error", (erro) => {
-            console.error("Erro no WebSocket:", erro);
-        });
-    }
+            socket.addEventListener("open", () => {
+                atualizarStatus(true, "Conectado");
+                btnConectar.disabled = true;
+                btnDesconectar.disabled = false;
+                console.log("WebSocket conectado");
+            });
 
-    // -------------------------
-    // DESCONECTAR
-    // -------------------------
-    function desconectar() {
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            socket.close(1000, "Encerrado pelo cliente");
-        }
-    }
+            socket.addEventListener("message", (event) => {
+                try {
+                    const diario = JSON.parse(event.data);
+                    render(diario);
+                } catch (erro) {
+                    console.error("Erro ao processar mensagem:", erro);
+                }
+            });
 
-    btnConectar.addEventListener("click", conectar);
-    btnDesconectar.addEventListener("click", desconectar);
+            socket.addEventListener("close", () => {
+                atualizarStatus(false, "Desconectado");
+                btnConectar.disabled = false;
+                btnDesconectar.disabled = true;
+                console.log("WebSocket desconectado");
+            });
 
-    // -------------------------
-    // FUNÇÕES AUXILIARES
-    // -------------------------
-
-    function atualizarStatus(icone, texto) {
-        statusSpan.textContent = icone;
-        statusSpan.title = texto;
-    }
-
-    function render(diario) {
-        lista.innerHTML = "";
-
-        if (!diario?.aulas || !diario?.alunos) {
-            mostrarMensagem("Dados inválidos recebidos.");
-            return;
+            socket.addEventListener("error", (erro) => {
+                console.error("Erro no WebSocket:", erro);
+                atualizarStatus(false, "Erro na conexão");
+            });
         }
 
-        const dataHoje = new Date().toISOString().split("T")[0];
-        const aulaHoje = diario.aulas.find(a => a.data === dataHoje);
-
-        if (!aulaHoje) {
-            return;
+        function desconectar() {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.close(1000, "Encerrado pelo cliente");
+            }
         }
 
-        const fragment = document.createDocumentFragment();
+        btnConectar.addEventListener("click", conectar);
+        btnDesconectar.addEventListener("click", desconectar);
 
-        diario.alunos.forEach(aluno => {
-            const li = document.createElement("li");
-            const status = aulaHoje.presencas?.[aluno.matricula] || "Não marcado";
-            li.textContent = `${aluno.nome} - ${status}`;
-            fragment.appendChild(li);
-        });
+        function atualizarStatus(conectado, texto) {
+            if (conectado) {
+                statusIndicator.classList.remove("desconectado");
+                statusIndicator.classList.add("conectado");
+            } else {
+                statusIndicator.classList.remove("conectado");
+                statusIndicator.classList.add("desconectado");
+            }
+            statusText.textContent = texto;
+        }
 
-        lista.appendChild(fragment);
-    }
+        function render(diario) {
+            lista.innerHTML = "";
 
-    function mostrarMensagem(texto) {
-        const li = document.createElement("li");
-        li.textContent = texto;
-        lista.appendChild(li);
-    }
-</script>
+            if (!diario?.aulas || !diario?.alunos) {
+                mostrarMensagem("Dados inválidos recebidos.");
+                return;
+            }
+
+            const dataHoje = new Date().toISOString().split("T")[0];
+            const aulaHoje = diario.aulas.find(a => a.data === dataHoje);
+
+            if (!aulaHoje) {
+                lista.innerHTML = `
+                    <div class="empty-state">
+                        <h3>📭 Nenhuma aula criada hoje</h3>
+                        <p>Aguardando criação de aula...</p>
+                    </div>
+                `;
+                return;
+            }
+
+            diario.alunos.forEach(aluno => {
+                const statusValue = aulaHoje.presencas?.[aluno.matricula];
+                let status = "❓ Não marcado";
+                let statusClass = "nao-marcado";
+
+                if (statusValue === "Presente") {
+                    status = "✓ Presente";
+                    statusClass = "presente";
+                } else if (statusValue === "Ausente") {
+                    status = "✗ Ausente";
+                    statusClass = "ausente";
+                }
+
+                const div = document.createElement("div");
+                div.className = "aluno-item";
+                div.innerHTML = `
+                    <div class="aluno-nome">${aluno.nome}</div>
+                    <span class="aluno-status ${statusClass}">${status}</span>
+                `;
+                lista.appendChild(div);
+            });
+        }
+
+        function mostrarMensagem(texto) {
+            const div = document.createElement("div");
+            div.className = "empty-state";
+            div.innerHTML = `<h3>⚠️ ${texto}</h3>`;
+            lista.appendChild(div);
+        }
+    </script>
+</body>
+
+</html>

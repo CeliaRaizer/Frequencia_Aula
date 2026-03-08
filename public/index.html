@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de Frequência</title>
+
+<link rel="stylesheet" href="/assets/css/header.css">
+<link rel="stylesheet" href="/assets/css/styles.css">
+
+</head>
+
+<body>
+
+<header>
+<div class="container header-content">
+
+<div>
+<h1>📚 Registro de Frequência</h1>
+</div>
+
+<nav class="menu">
+<a href="#" onclick="mostrarSecao('home')">Home</a>
+<a href="#" onclick="mostrarSecao('sobre')">Sobre</a>
+<a href="#" onclick="mostrarSecao('funcionalidades')">Funcionalidades</a>
+</nav>
+
+</div>
+</header>
+
+
+<main class="container">
+
+<!-- HOME -->
+<section id="home" class="secao">
+
+<section class="features">
+
+<div class="feature-card" onclick="window.location.href='/professor'">
+<div class="feature-icon">👨‍🏫</div>
+<h3>Tela do Professor</h3>
+<p>Interface para marcar presença dos alunos.</p>
+</div>
+
+<div class="feature-card" onclick="window.location.href='/coordenacao-ws'">
+<div class="feature-icon">🔗</div>
+<h3>Coordenação WebSocket</h3>
+</div>
+
+<div class="feature-card" onclick="window.location.href='/coordenacao-long'">
+<div class="feature-icon">⏱️</div>
+<h3>Coordenação Long Polling</h3>
+</div>
+
+<div class="feature-card" onclick="window.location.href='/coordenacao-pooling'">
+<div class="feature-icon">🔄</div>
+<h3>Coordenação Pooling</h3>
+</div>
+
+</section>
+
+</section>
+
+
+<!-- SOBRE -->
+<section id="sobre" class="secao escondida">
+
+<h2>Sobre o Sistema</h2>
+
+<p>
+Este sistema demonstra três formas diferentes de comunicação em tempo real:
+</p>
+
+<ul>
+<li>WebSocket</li>
+<li>Long Polling</li>
+<li>Pooling</li>
+</ul>
+
+</section>
+
+
+<!-- FUNCIONALIDADES -->
+<section id="funcionalidades" class="secao escondida">
+
+<h2>Funcionalidades</h2>
+
+<ul>
+<li>Criar aulas</li>
+<li>Marcar presença</li>
+<li>Sincronização em tempo real</li>
+<li>Histórico de aulas</li>
+</ul>
+
+</section>
+
+</main>
+
+
+<script>
+
+function mostrarSecao(id){
+
+document.querySelectorAll(".secao").forEach(secao=>{
+secao.classList.add("escondida")
+})
+
+document.getElementById(id).classList.remove("escondida")
+
+}
+
+</script>
+
+</body>
+</html>

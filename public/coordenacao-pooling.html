@@ -1,68 +1,107 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coordenação - Polling</title>
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="stylesheet" href="/assets/css/professor.css">
+    <link rel="stylesheet" href="/assets/css/coordenacao.css">
 </head>
+
 <body>
+    <header>
+        <div class="container">
+            <h1>📡 Coordenação - Polling</h1>
+            <p>Visualização com atualização por Pooling (a cada 3 segundos)</p>
+        </div>
+    </header>
 
-<div class="container">
+    <nav>
+        <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/professor" style="background-color: #3498db; color: white;">Professor</a></li>
+        <li><a href="/coordenacao-ws">Coordenação (WS)</a></li>
+        <li><a href="/coordenacao-long">Coordenação (Long)</a></li>
+        <li><a href="/coordenacao-pooling">Coordenação (Polling)</a></li>
+        <li><a href="/aulas">Aulas</a></li>
+        </ul>
+    </nav>
 
-    <h2>
-        Coordenação - Polling
-        <span class="info">(Atualiza a cada 3 segundos)</span>
-    </h2>
+    <main class="container">
+        <section>
+            <div class="connection-status">
+                <span class="status-indicator"></span>
+                <span>Sincronizando com servidor (a cada 3 segundos)...</span>
+            </div>
 
-    <ul id="lista"></ul>
+            <div class="info-box">
+                <strong>🔄 Polling</strong>
+                <p>Este método faz requisições periódicas ao servidor para buscar atualizações.</p>
+                <small>Atualização a cada 3 segundos</small>
+            </div>
 
-</div>
+            <h2>Presença da Aula de Hoje</h2>
+            <div id="lista"></div>
+        </section>
+    </main>
 
-<script>
-    async function atualizar() {
-        try {
-            const res = await fetch("/diario");
-            const diario = await res.json();
+    <footer>
+        <p><strong>Registro de Frequência</strong> | Coordenação - Polling</p>
+        <p>© 2026 - Sistema de Gerenciamento de Frequências</p>
+    </footer>
 
-            const dataHoje = new Date().toISOString().split("T")[0];
-            const aula = diario.aulas ? diario.aulas.find(a => a.data === dataHoje) : null;
+    <script>
+        async function atualizar() {
+            try {
+                const res = await fetch("/diario");
+                const diario = await res.json();
 
-            const lista = document.getElementById("lista");
-            lista.innerHTML = "";
+                const dataHoje = new Date().toISOString().split("T")[0];
+                const aula = diario.aulas ? diario.aulas.find(a => a.data === dataHoje) : null;
 
-            if (!aula) {
-                mostrarMensagem("Nenhuma aula criada hoje.");
-                return;
+                const lista = document.getElementById("lista");
+                lista.innerHTML = "";
+
+                if (!aula) {
+                    lista.innerHTML = `
+                        <div class="empty-state">
+                            <h3>📭 Nenhuma aula criada hoje</h3>
+                            <p>Aguardando criação de aula...</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                diario.alunos.forEach(aluno => {
+                    const statusValue = aula.presencas[aluno.matricula];
+                    let status = "❓ Não marcado";
+                    let statusClass = "nao-marcado";
+
+                    if (statusValue === "Presente") {
+                        status = "✓ Presente";
+                        statusClass = "presente";
+                    } else if (statusValue === "Ausente") {
+                        status = "✗ Ausente";
+                        statusClass = "ausente";
+                    }
+
+                    lista.innerHTML += `
+                        <div class="aluno-item">
+                            <div class="aluno-nome">${aluno.nome}</div>
+                            <span class="aluno-status ${statusClass}">${status}</span>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                console.error("Erro ao atualizar:", error);
             }
-
-            diario.alunos.forEach(aluno => {
-                const status = aula.presencas?.[aluno.matricula] || "Não marcado";
-
-                const li = document.createElement("li");
-                li.textContent = `${aluno.nome} - ${status}`;
-
-                if (status === "Presente") li.classList.add("presente");
-                else if (status === "Ausente") li.classList.add("ausente");
-                else li.classList.add("nao-marcado");
-
-                lista.appendChild(li);
-            });
-
-        } catch (erro) {
-            console.error("Erro ao atualizar:", erro);
         }
-    }
 
-    function mostrarMensagem(texto) {
-        const lista = document.getElementById("lista");
-        const li = document.createElement("li");
-        li.textContent = texto;
-        lista.appendChild(li);
-    }
-
-    setInterval(atualizar, 3000);
-    atualizar();
-</script>
-
+        atualizar();
+        setInterval(atualizar, 3000);
+    </script>
 </body>
+
 </html>

@@ -1,0 +1,211 @@
+/* ===== COORDENACAO.CSS ===== */
+
+/* STATUS DE CONEXÃO */
+
+.connection-status{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:white;
+border-radius:10px;
+padding:20px;
+margin-bottom:25px;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
+border-left:6px solid #d63384;
+}
+
+.status-text{
+display:flex;
+align-items:center;
+gap:10px;
+font-weight:600;
+color:#2c3e50;
+}
+
+.status-indicator{
+width:12px;
+height:12px;
+border-radius:50%;
+}
+
+.conectado{
+background:#ff4da6;
+box-shadow:0 0 6px #ff4da6;
+}
+
+.desconectado{
+background:#ff6b81;
+}
+
+/* ===== BOTÕES (MESMO PADRÃO DO PROFESSOR) ===== */
+
+.connection-buttons{
+display:flex;
+gap:10px;
+}
+
+.btn{
+padding:10px 18px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+font-weight:600;
+transition:0.2s;
+}
+
+.btn:hover{
+transform:scale(1.05);
+}
+
+.btn-success{
+background:#ff4da6;
+color:white;
+}
+
+.btn-primary{
+background:#d63384;
+color:white;
+}
+
+.btn-danger{
+background:#ff6b81;
+color:white;
+}
+
+.btn:disabled{
+opacity:0.6;
+cursor:not-allowed;
+}
+
+/* ===== CAIXA DE INFORMAÇÃO ===== */
+
+.info-box{
+background:white;
+border-left:5px solid #d63384;
+padding:18px;
+border-radius:10px;
+margin-bottom:30px;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+
+.info-box strong{
+font-size:16px;
+color:#2c3e50;
+}
+
+/* ===== LISTA DE ALUNOS ===== */
+
+#lista{
+display:flex;
+flex-direction:column;
+gap:10px;
+margin-top:20px;
+}
+
+.aluno-item{
+background:white;
+padding:15px;
+border-radius:8px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+box-shadow:0 1px 4px rgba(0,0,0,0.1);
+transition:0.2s;
+}
+
+.aluno-item:hover{
+transform:scale(1.01);
+}
+
+.aluno-nome{
+font-weight:600;
+font-size:15px;
+}
+
+/* ===== STATUS DOS ALUNOS ===== */
+
+.aluno-status{
+padding:4px 10px;
+border-radius:20px;
+font-size:13px;
+font-weight:bold;
+}
+
+.presente{
+background:#ffd6e7;
+color:#d63384;
+}
+
+.ausente{
+background:#ffe3e6;
+color:#ff4d6d;
+}
+
+.nao-marcado{
+background:#ffe6f2;
+color:#c2185b;
+}
+
+/* ===== MENSAGEM VAZIA ===== */
+
+.empty-state{
+background:white;
+padding:40px;
+border-radius:10px;
+text-align:center;
+box-shadow:0 1px 4px rgba(0,0,0,0.1);
+}
+
+.empty-state h3{
+margin-bottom:10px;
+}
+
+/* ===== MENU ===== */
+
+.menu{
+display:flex;
+justify-content:center;
+align-items:center;
+gap:20px;
+list-style:none;
+padding:10px;
+margin-bottom:30px;
+background:white;
+box-shadow:0 2px 5px rgba(0,0,0,0.1);
+border-radius:8px;
+}
+
+.menu a{
+text-decoration:none;
+padding:10px 18px;
+border-radius:6px;
+color:#2c3e50;
+font-weight:600;
+transition:0.2s;
+}
+
+.menu a:hover{
+background:#ff69b4;
+color:white;
+}
+
+.card-coordenacao{
+background:white;
+padding:30px;
+border-radius:12px;
+box-shadow:0 2px 8px rgba(0,0,0,0.1);
+margin-top:20px;
+}
+
+.card-coordenacao h2{
+margin-bottom:20px;
+color:#2c3e50;
+border-left:4px solid #d63384;
+padding-left:10px;
+}
+
+nav a.active{
+background:#3498db;
+color:white;
+border-radius:6px;
+}

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Aulas</title>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="stylesheet" href="/assets/css/professor.css">
+    <link rel="stylesheet" href="/assets/css/aulas.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <h1>📚 Histórico de Aulas</h1>
+            <p>Visualize todas as aulas e registros de frequência</p>
+        </div>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/professor">Professor</a></li>
+            <li><a href="/coordenacao-ws">Coordenação (WS)</a></li>
+            <li><a href="/coordenacao-long">Coordenação (Long)</a></li>
+            <li><a href="/coordenacao-pooling">Coordenação (Polling)</a></li>
+            <li><a href="/aulas" class="active">Aulas</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <section class="card-aulas">
+            <div class="action-buttons" style="margin-bottom: 30px;">
+                <button class="btn btn-primary" onclick="atualizarDados()">🔄 Atualizar</button>
+                <button class="btn btn-success" onclick="window.open('/diario', '_blank')">📊 Ver JSON</button>
+            </div>
+
+            <div id="loading" class="loading" style="display:none;">
+                <div class="spinner"></div>
+                <p>Carregando aulas...</p>
+            </div>
+
+            <div id="content">
+                <!-- Aulas serão inseridas aqui -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p><strong>Registro de Frequência</strong> | Histórico de Aulas</p>
+        <p>© 2026 - Sistema de Gerenciamento de Frequências</p>
+    </footer>
+
+    <script>
+        async function atualizarDados() {
+            const loading = document.getElementById('loading');
+            const content = document.getElementById('content');
+
+            loading.style.display = 'block';
+            content.innerHTML = '';
+
+            try {
+                const response = await fetch('/diario');
+                const dados = await response.json();
+
+                loading.style.display = 'none';
+
+                if (!dados.aulas || dados.aulas.length === 0) {
+                    content.innerHTML = `
+                        <div class="empty-state">
+                            <h2>📭 Nenhuma aula registrada</h2>
+                            <p>Comece criando uma nova aula na tela do professor.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Ordenar aulas por data decrescente
+                const aulasOrdenadas = [...dados.aulas].sort((a, b) =>
+                    new Date(b.data) - new Date(a.data)
+                );
+
+                let html = '';
+                aulasOrdenadas.forEach(aula => {
+                    const totalAlunos = Object.keys(aula.presencas).length;
+                    const presentes = Object.values(aula.presencas).filter(status => status === 'Presente').length;
+                    const ausentes = totalAlunos - presentes;
+
+                    const dataFormatada = new Date(aula.data + 'T00:00:00').toLocaleDateString('pt-BR', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                    let presencasHtml = '';
+                    if (Object.keys(aula.presencas).length === 0) {
+                        presencasHtml = '<p style="color: #95a5a6; font-size: 14px;">Nenhum registro de presença</p>';
+                    } else {
+                        presencasHtml = '<div class="presencas-grid">';
+                        Object.entries(aula.presencas).forEach(([matricula, status]) => {
+                            const statusLabel = status === 'Presente' ? '✓ Presente' : '✗ Ausente';
+                            const statusClass = status === 'Presente' ? 'presente' : 'ausente';
+                            presencasHtml += `
+                                <div class="presenca-item ${statusClass}">
+                                    ${matricula}: ${statusLabel}
+                                </div>
+                            `;
+                        });
+                        presencasHtml += '</div>';
+                    }
+
+                    html += `
+                        <div class="aula-item">
+                            <div class="aula-header">
+                                <div class="aula-data">📅 ${dataFormatada}</div>
+                                <div class="aula-stats">
+                                    <span class="stat-badge">Total: ${totalAlunos}</span>
+                                    <span class="stat-badge presente">✓ Presentes: ${presentes}</span>
+                                    <span class="stat-badge ausente">✗ Ausentes: ${ausentes}</span>
+                                </div>
+                            </div>
+                            <div class="presencas-container">
+                                <h4 style="margin: 0 0 10px 0; color: #2c3e50;">Registros de Presença:</h4>
+                                ${presencasHtml}
+                            </div>
+                            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                                <button class="btn btn-warning" onclick="viewAula('${aula.data}')">👁️ Detalhes</button>
+                                <button class="btn btn-danger" onclick="deleteAula('${aula.data}')">🗑️ Deletar</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                content.innerHTML = html;
+            } catch (error) {
+                loading.style.display = 'none';
+                content.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>Erro ao carregar aulas:</strong> ${error.message}
+                    </div>
+                `;
+                console.error('Erro:', error);
+            }
+        }
+
+        function viewAula(data) {
+            window.location.href = `/aula/${data}`;
+        }
+
+        async function deleteAula(data) {
+            if (!confirm(`Tem certeza que deseja deletar a aula de ${data}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/aula/${data}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('Aula deletada com sucesso!');
+                    atualizarDados();
+                } else {
+                    alert('Erro ao deletar aula');
+                }
+            } catch (error) {
+                alert('Erro ao deletar aula: ' + error.message);
+            }
+        }
+
+        // Carregar aulas ao abrir a página
+        window.addEventListener('load', atualizarDados);
+    </script>
+</body>
+
+</html>
