@@ -1,0 +1,36 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: registro-frequencia-dev
+    ports:
+      - "3000:3000" #externa:interna
+    volumes:
+      - .:/app
+      - /app/node_modules #somente para modo dev
+    environment:
+      - NODE_END=development
+      - PORT=3000
+    networks:
+      - dev-network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx-dev
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.dev.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - dev-network
+    restart: unless-stopped
+
+
+networks:
+  dev-network:
+    driver: bridge
+      
