@@ -1,0 +1,24 @@
+# Estágio 1: Builder
+FROM node:25-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+
+# Estágio 2: Runtime
+FROM node:25-alpine
+WORKDIR /app
+
+# addgroup: Cria um grupo chamado nodejs com GID 1001
+RUN addgroup -g 1001 -S nodejs
+# adduser: Cria um usuário chamado nodejs com UID 1001 e adiciona-o ao grupo nodejs
+RUN adduser -S nodejs -u 1001
+
+# Copiar arquivos do estágio de builder
+# O comando COPY --from=builder copia os arquivos do estágio de construção (builder) para o estágio de execução atual. Ele pega tudo da pasta /app do estágio builder e coloca na pasta /app do estágio runtime.
+COPY --from=builder /app ./
+
+# Mudar para o usuário não-root
+USER nodejs
+EXPOSE 3000
+CMD ["npm", "start"]
