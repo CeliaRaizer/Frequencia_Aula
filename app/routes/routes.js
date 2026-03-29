@@ -40,6 +40,8 @@ function configurarRotas(app, aulaController, presencaController, notificador) {
         });
     });
 
+    router.get("/health", (req, res) => res.json({ status: "ok" }));
+
     return router;
 }
 

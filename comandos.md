@@ -25,25 +25,25 @@ docker rm chamadas-dev-container
 # copiar um arquivo do container para o host
 docker cp chamadas-dev-container:/app/diario.json ./diario.json.bkp
 
-# limpeza geral (cuidado)
+# Limpeza geral (cuidado)
+
 docker system prune -a
 
 ## Docker Compose
 
 # 1. Rodar os serviços
 
-````bash
- docker compose -f docker-compose.yml up -d
- ## ou  --build para forçar o rebuild da imagem (Dockerfile.dev)
- docker compose -f docker-compose.yml up -d --build
+```bash
+docker compose up -d
+## ou --build para forçar o rebuild da imagem (Dockerfile.dev)
+docker compose -f docker-compose.yml up -d --build
 ```
 
-# 2. parar os serviços
+# 2. Parar os serviços
 
 ```bash
 docker compose down
 ```
-
 
 # 3. Verificar os logs
 
@@ -84,7 +84,7 @@ docker run -d \
 
 ```bash
 # Gerar certificado autoassinado
-openssl req -x509 -nodes -days 365 \
+MSYS_NO_PATHCONV=1 openssl req -x509 -nodes -days 365 \
   -newkey rsa:2048 \
   -keyout nginx/certs/key.pem \
   -out nginx/certs/cert.pem \
